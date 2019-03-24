@@ -1,6 +1,16 @@
 package tross.lexer
 
-class Lexer(val input: String) {
+class Lexer(input: String) {
+
+    val input: String
+
+    init {
+        if (input[input.length - 1] != '\n') {
+            this.input = input + '\n'
+        } else {
+            this.input = input
+        }
+    }
 
     var position = 0
     var readPosition = 0
@@ -24,7 +34,7 @@ class Lexer(val input: String) {
 
         this.skipWhitespace()
 
-        var tok = when(this.ch) {
+        val tok = when(this.ch) {
             '\n' -> newToken(TokenType.NEWLINE, this.ch)
             '=' -> if (this.peekChar() == '=') {
                 val ch = this.ch
@@ -77,7 +87,7 @@ class Lexer(val input: String) {
             '/' -> newToken(TokenType.DIVIDE, this.ch)
             0.toChar() -> Token(TokenType.EOF, "")
             else -> if (this.ch.isLetter()) {
-                var ident = this.readIdentifier()
+                val ident = this.readIdentifier()
                 return Token(lookupIdent(ident), ident)
             } else if (this.ch.isDigit()) {
                 return Token(TokenType.INT, this.readNumber())
@@ -102,7 +112,7 @@ class Lexer(val input: String) {
     }
 
     fun readIdentifier(): String {
-        var position = this.position
+        val position = this.position
         while (this.ch.isLetter()) {
             this.readChar()
         }
@@ -110,7 +120,7 @@ class Lexer(val input: String) {
     }
 
     fun readNumber(): String {
-        var position = this.position
+        val position = this.position
         while (this.ch.isDigit()) {
             this.readChar()
         }

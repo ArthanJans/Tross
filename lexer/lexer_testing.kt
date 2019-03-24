@@ -1,7 +1,7 @@
 package tross.lexer
 
 fun testNextToken() {
-    var input = """var five = 5
+    val input = """var five = 5
     var ten = 10
     func add (x, y) > ret x + y <
     var result = add(five, ten)
@@ -20,10 +20,9 @@ fun testNextToken() {
     5 >> 10
     10 << 5
     5 <= 10
-    10 >= 5
-    """
+    10 >= 5"""
 
-    var tests = arrayOf(
+    val tests = arrayOf(
         ExpectedToken(TokenType.VAR, "var"),
         ExpectedToken(TokenType.IDENT, "five"),
         ExpectedToken(TokenType.ASSIGN, "="),
@@ -122,10 +121,10 @@ fun testNextToken() {
         ExpectedToken(TokenType.NEWLINE, "\n"),
         ExpectedToken(TokenType.EOF, "")
     )
-    var l = Lexer(input)
+    val l = Lexer(input)
 
     for ((index, expectedToken) in tests.withIndex()) {
-        var tok = l.nextToken()
+        val tok = l.nextToken()
 
         if (tok.type != expectedToken.type) {
             println(String.format("tests[%d] - tokentype wrong. expected=%s, got=%s", index, expectedToken.type, tok.type))

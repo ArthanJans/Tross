@@ -5,21 +5,17 @@ import tross.lexer.*
 
 fun testLetStatements() {
     val input = """
-    let x = 5
-    let y = 10
-    let foobar = 838383
+    var x = 5
+    var y = 10
+    var foobar = 838383
     """
 
-    var l = Lexer(input)
-    var p = Parser(l)
+    val l = Lexer(input)
+    val p = Parser(l)
 
-    var program = p.parseProgram()
+    val program = p.parseProgram()
     checkParseErrors(p)
 
-    if (program == null) {
-        println("ParseProgram() returned null")
-        return
-    }
     if (program.statements.size != 3) {
         println("program.statements does not contain 3 statements. got=" + program.statements.size)
         return
@@ -32,7 +28,7 @@ fun testLetStatements() {
     )
 
     for ((index, expectedStatement) in tests.withIndex()) {
-        var stmt = program.statements[index]
+        val stmt = program.statements[index]
 
         if (! testLetStatement(stmt, expectedStatement.expectedIdentifier)) {
             return
@@ -41,11 +37,11 @@ fun testLetStatements() {
 }
 
 fun testLetStatement(s: Statement, name: String): Boolean {
-    if (s.tokenLiteral() != "let") {
-        println("s.TokenLiteral not 'let'. got=" + s.tokenLiteral())
+    if (s.tokenLiteral() != "var") {
+        println("s.TokenLiteral not 'var'. got=" + s.tokenLiteral())
         return false
     }
-    if (!(s is LetStatement)) {
+    if (s !is VarStatement) {
         println("s not LetStatemenet. got=" + s)
         return false
     } else {
@@ -62,6 +58,63 @@ fun testLetStatement(s: Statement, name: String): Boolean {
     }
 }
 
+fun testIdentifierExpression() {
+    val input = "foobar"
+
+    val l = Lexer(input)
+    val p = Parser(l)
+    val program = p.parseProgram()
+    checkParseErrors(p)
+
+    if (program.statements.size != 1) {
+        println("program has not enough statements. got=${program.statements.size}")
+    }
+    val stmt = program.statements[0]
+    if (stmt !is ExpressionStatement) {
+        println("program.statements[0] is not ast.ExpressionStatement. got=$stmt")
+    } else {
+        val ident = stmt.expression
+        if (ident !is Identifier) {
+            println("exp no Identifier. got=$ident")
+        } else {
+            if (ident.value != "foobar") {
+                println("ident.value not foobar. got=${ident.value}")
+            }
+            if (ident.tokenLiteral() != "foobar") {
+                println("ident.tokenLiteral not foobar. got=${ident.tokenLiteral()}")
+            }
+        }
+    }
+}
+
+fun testIntegerLiteralExpression() {
+    val input = "5"
+    val l = Lexer(input)
+    val p = Parser(l)
+    val program = p.parseProgram()
+    checkParseErrors(p)
+
+    if (program.statements.size != 1) {
+        println("program has not enough statements. got=${program.statements.size}")
+    }
+    val stmt = program.statements[0]
+    if (stmt !is ExpressionStatement) {
+        println("programStatements[0] is not ExpressionStatement. got=$stmt")
+    } else {
+        val literal = stmt.expression
+        if (literal !is IntegerLiteral) {
+            println("exp not IntegeLiteral. got=$literal")
+        } else {
+            if (literal.value != 5) {
+                println("literal.value not 5. got=${literal.value}")
+            }
+            if (literal.tokenLiteral() != "5") {
+                println("literal.tokenLiteral not 5. got=${literal.tokenLiteral()}")
+            }
+        }
+    }
+}
+
 fun checkParseErrors(p: Parser) {
     val errors = p.errors
     if (errors.size == 0) {
@@ -75,6 +128,4 @@ fun checkParseErrors(p: Parser) {
     kotlin.system.exitProcess(1)
 }
 
-class ExpectedStatement(val expectedIdentifier: String) {
-
-}
+class ExpectedStatement(val expectedIdentifier: String)

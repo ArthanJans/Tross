@@ -3,14 +3,32 @@ package tross.parser
 import tross.ast.*
 import tross.lexer.*
 
+
+
 class Parser(var l: Lexer) {
+
+    enum class Priority {
+        LOWEST(),
+        EQUALS(),
+        LESSGREATER(),
+        SUM(),
+        PRODUCT(),
+        PREFIX(),
+        CALL()
+    }
+
     var curToken: Token
     var peekToken: Token
     var errors = ArrayList<String>()
 
+    val prefixParseFns = HashMap<TokenType, ()->Expression>()
+    val infixParseFns = HashMap<TokenType, (e:Expression)->Expression>()
+
     init{
         this.curToken = this.l.nextToken()
         this.peekToken = this.l.nextToken()
+        this.prefixParseFns[TokenType.IDENT] = this::parseIdentifier
+        this.prefixParseFns[TokenType.INT] = this::parseIntegerLiteral
     }
 
     fun peekError(t: TokenType) {
@@ -24,10 +42,10 @@ class Parser(var l: Lexer) {
         this.peekToken = this.l.nextToken()
     }
 
-    fun parseProgram(): Program? {
+    fun parseProgram(): Program {
         val statements = ArrayList<Statement>()
         while (!this.curTokenIs(TokenType.EOF)) {
-            var stmt = this.parseStatement()
+            val stmt = this.parseStatement()
             if (stmt != null) {
                 statements.add(stmt)
             }
@@ -38,30 +56,57 @@ class Parser(var l: Lexer) {
 
     fun parseStatement(): Statement? {
         return when(this.curToken.type) {
-            // TokenType.VAR -> this.parseLetStatement()
-            else -> null
+            TokenType.VAR -> this.parseVarStatement()
+            else -> this.parseExpressionStatement()
+//            else -> null
         }
     }
 
-    // fun parseLetStatement(): LetStatement? {
-    //     if (!this.expectPeek(TokenType.IDENT)) {
-    //         return null
-    //     }
-        
-    //     val name = Identifier(this.curToken, this.curToken.literal)
-        
-    //     if (! this.expectPeek(TokenType.ASSIGN)) {
-    //         return null
-    //     }
+     fun parseVarStatement(): VarStatement? {
+         if (!this.expectPeek(TokenType.IDENT)) {
+             return null
+         }
 
-    //     val value : Expression
-    //     //TODO: skipping expressions until we encounter a newline
-    //     while (! this.curTokenIs(TokenType.NEWLINE)) {
-    //         this.nextToken()
-    //     }
+         val name = Identifier(this.curToken, this.curToken.literal)
 
-    //     return LetStatement(this.curToken, name, value)
-    // }
+         if (! this.expectPeek(TokenType.ASSIGN)) {
+             return null
+         }
+
+         val value = this.parseExpression(Priority.LOWEST)
+         if (this.curTokenIs(TokenType.NEWLINE)) {
+             this.nextToken()
+         }
+         if (value == null) {
+             return null
+         }
+         return VarStatement(this.curToken, name, value)
+     }
+
+    fun parseExpressionStatement(): ExpressionStatement? {
+        val expression = this.parseExpression(Priority.LOWEST)
+        if (this.peekTokenIs(TokenType.NEWLINE)) {
+
+        }
+        if (expression == null) {
+            return null
+        }
+        return ExpressionStatement(this.curToken, expression)
+    }
+
+    fun parseExpression(precedence: Priority): Expression? {
+        val prefix = this.prefixParseFns[this.curToken.type]
+        return prefix?.invoke()
+    }
+
+    fun parseIdentifier(): Expression {
+        return Identifier(this.curToken, this.curToken.literal)
+    }
+
+    fun parseIntegerLiteral(): Expression {
+        val value = this.curToken.literal.toInt()
+        return IntegerLiteral(this.curToken, value)
+    }
 
     fun curTokenIs(t: TokenType): Boolean {
         return this.curToken.type == t

@@ -15,7 +15,7 @@ interface Expression : Node {
     fun expressionNode()
 }
 
-class Program(var statements : ArrayList<Statement>) : Node {
+class Program(var statements : MutableList<Statement>) : Node {
 
     override fun tokenLiteral(): String {
         if (this.statements.size > 0) {
@@ -37,7 +37,7 @@ class Program(var statements : ArrayList<Statement>) : Node {
 
 }
 
-class LetStatement(var token: Token, var name: Identifier, var value: Expression): Statement {
+class VarStatement(var token: Token, var name: Identifier, var value: Expression): Statement {
 
     override fun statementNode() {
 
@@ -71,6 +71,20 @@ class ExpressionStatement(var token: Token, var expression: Expression) :Stateme
 
     override fun string() : String {
         return this.expression.string()
+    }
+}
+
+class IntegerLiteral(var token: Token, var value: Int) : Expression {
+    override fun expressionNode() {
+
+    }
+
+    override fun tokenLiteral(): String {
+        return this.token.literal
+    }
+
+    override fun string(): String {
+        return this.token.literal
     }
 }
 
