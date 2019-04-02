@@ -57,33 +57,47 @@ class Parser(var l: Lexer) {
     fun parseStatement(): Statement? {
         return when(this.curToken.type) {
             TokenType.VAR -> this.parseVarStatement()
+            TokenType.RET -> this.parseRetStatement()
             else -> this.parseExpressionStatement()
-//            else -> null
         }
     }
 
-     fun parseVarStatement(): VarStatement? {
-         if (!this.expectPeek(TokenType.IDENT)) {
-             return null
-         }
+    fun noPrefixParseFnError(token: TokenType): Expression? {
+        val msg = "no prefix parse function for $token found"
+        this.errors.add(msg)
+        return null
+    }
 
-         val name = Identifier(this.curToken, this.curToken.literal)
+    fun parseRetStatement(): ReturnStatement? {
+        val tok = this.curToken
+        this.nextToken()
+        val value = this.parseExpression(Priority.LOWEST)?: return null
+        return ReturnStatement(tok, value)
+    }
 
-         if (! this.expectPeek(TokenType.ASSIGN)) {
-             return null
-         }
+    fun parseVarStatement(): VarStatement? {
+        val token = this.curToken
+        if (!this.expectPeek(TokenType.IDENT)) {
+            return null
+        }
 
-         val value = this.parseExpression(Priority.LOWEST)
-         if (this.curTokenIs(TokenType.NEWLINE)) {
-             this.nextToken()
-         }
-         if (value == null) {
-             return null
-         }
-         return VarStatement(this.curToken, name, value)
-     }
+        val name = Identifier(this.curToken, this.curToken.literal)
+
+        if (! this.expectPeek(TokenType.ASSIGN)) {
+            return null
+        }
+
+        this.nextToken()
+
+        val value = this.parseExpression(Priority.LOWEST)?: return null
+        if (this.curTokenIs(TokenType.NEWLINE)) {
+            this.nextToken()
+        }
+        return VarStatement(token, name, value)
+    }
 
     fun parseExpressionStatement(): ExpressionStatement? {
+        val tok = this.curToken
         val expression = this.parseExpression(Priority.LOWEST)
         if (this.peekTokenIs(TokenType.NEWLINE)) {
 
@@ -91,12 +105,15 @@ class Parser(var l: Lexer) {
         if (expression == null) {
             return null
         }
-        return ExpressionStatement(this.curToken, expression)
+        return ExpressionStatement(tok, expression)
     }
 
     fun parseExpression(precedence: Priority): Expression? {
+        if (this.curTokenIs(tross.lexer.TokenType.NEWLINE)) {
+            return null
+        }
         val prefix = this.prefixParseFns[this.curToken.type]
-        return prefix?.invoke()
+        return prefix?.invoke()?: noPrefixParseFnError(this.curToken.type)
     }
 
     fun parseIdentifier(): Expression {

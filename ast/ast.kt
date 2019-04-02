@@ -37,6 +37,27 @@ class Program(var statements : MutableList<Statement>) : Node {
 
 }
 
+class ReturnStatement(var token: Token, var returnValue: Expression): Statement {
+
+    override fun statementNode() {
+    }
+
+    override fun tokenLiteral(): String {
+        return this.token.literal
+    }
+
+    override fun string(): String {
+        var out = ""
+
+        out += this.tokenLiteral() + " "
+        out += this.returnValue.string()
+        out += "\n"
+
+        return out
+    }
+
+}
+
 class VarStatement(var token: Token, var name: Identifier, var value: Expression): Statement {
 
     override fun statementNode() {
@@ -85,6 +106,26 @@ class IntegerLiteral(var token: Token, var value: Int) : Expression {
 
     override fun string(): String {
         return this.token.literal
+    }
+}
+
+class PrefixExpression(val token: Token, val operator: String, val right: Expression): Expression {
+    override fun expressionNode() {
+
+    }
+
+    override fun tokenLiteral(): String {
+        return this.token.literal
+    }
+
+    override fun string(): String {
+        var out = ""
+
+        out += "("
+        out += this.operator
+        out += this.right.string()
+        out += ")"
+        return out
     }
 }
 
