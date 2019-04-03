@@ -9,6 +9,7 @@ fun main(args: Array<String>) {
     tross.parser.testIntegerLiteralExpression()
     tross.parser.testParsingPrefixExpressions()
     tross.parser.testParsingInfixExpressions()
+    tross.parser.testOperatorPrecedenceParsing()
     println("Hello! This is the Tross programming language!")
     tross.repl.start()
 }
