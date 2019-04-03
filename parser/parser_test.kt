@@ -155,7 +155,6 @@ fun testParsingPrefixExpressions() {
         val p = Parser(l)
         val program = p.parseProgram()
         checkParseErrors(p)
-
         if (program.statements.size != 1) {
             println("program.statements does not contain 1 statement. got=${program.statements.size}")
             return
@@ -175,6 +174,49 @@ fun testParsingPrefixExpressions() {
             }
         } else {
             println("stmt is not ExpressionStatement. got=$stmt")
+        }
+    }
+}
+
+fun testParsingInfixExpressions() {
+    class Test(val input:String, val leftValue: Int, val operator: String, val rightValue: Int)
+    val infixTests = arrayOf(
+            Test("5 + 5;", 5, "+", 5),
+            Test("5 - 5;", 5, "-", 5),
+            Test("5 * 5;", 5, "*", 5),
+            Test("5 / 5;", 5, "/", 5),
+            Test("5 > 5;", 5, ">", 5),
+            Test("5 < 5;", 5, "<", 5),
+            Test("5 == 5;", 5, "==", 5),
+            Test("5 != 5;", 5, "!=", 5)
+    )
+    for (test in infixTests) {
+        val l = Lexer(test.input)
+        val p = Parser(l)
+        val program = p.parseProgram()
+        checkParseErrors(p)
+
+        if (program.statements.size != 1) {
+            println("program.statements does not contain 1 statement. got=${program.statements.size}")
+        }
+        val stmt = program.statements[0]
+        if (stmt is ExpressionStatement) {
+            val exp = stmt.expression
+            if (exp is InfixExpression) {
+                if (!testIntegerLiteral(exp.left, test.leftValue)){
+                    return
+                }
+                if (exp.operator != test.operator) {
+                    println("exp.operator is not '${test.operator}'. got=${exp.operator}")
+                }
+                if (!testIntegerLiteral(exp.right, test.rightValue)) {
+                    return
+                }
+            } else {
+                println("exp is not InfixExpression. got=$exp")
+            }
+        } else {
+            println("program.statements[0] is not ExpressionStatement. got=$stmt")
         }
     }
 }

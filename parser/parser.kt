@@ -21,7 +21,7 @@ class Parser(var l: Lexer) {
     var peekToken: Token
     var errors = ArrayList<String>()
 
-    val prefixParseFns = HashMap<TokenType, ()->Expression>()
+    val prefixParseFns = HashMap<TokenType, ()->Expression?>()
     val infixParseFns = HashMap<TokenType, (e:Expression)->Expression>()
 
     init{
@@ -29,6 +29,8 @@ class Parser(var l: Lexer) {
         this.peekToken = this.l.nextToken()
         this.prefixParseFns[TokenType.IDENT] = this::parseIdentifier
         this.prefixParseFns[TokenType.INT] = this::parseIntegerLiteral
+        this.prefixParseFns[TokenType.NOT] = this::parsePrefixExpression
+        this.prefixParseFns[TokenType.MINUS] = this::parsePrefixExpression
     }
 
     fun peekError(t: TokenType) {
@@ -94,6 +96,14 @@ class Parser(var l: Lexer) {
             this.nextToken()
         }
         return VarStatement(token, name, value)
+    }
+
+    fun parsePrefixExpression(): Expression? {
+        val token = this.curToken
+        val operator = this.curToken.literal
+        this.nextToken()
+        val right = this.parseExpression(Priority.PREFIX)?:return null
+        return PrefixExpression(token, operator, right)
     }
 
     fun parseExpressionStatement(): ExpressionStatement? {

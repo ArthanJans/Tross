@@ -95,6 +95,20 @@ class ExpressionStatement(var token: Token, var expression: Expression) :Stateme
     }
 }
 
+class InfixExpression(var token: Token, var left: Expression, var operator: String, var right: Expression): Expression {
+    override fun expressionNode() {
+
+    }
+
+    override fun tokenLiteral(): String {
+        return token.literal
+    }
+
+    override fun string(): String {
+        return "(${left.string()} $operator ${right.string()})"
+    }
+}
+
 class IntegerLiteral(var token: Token, var value: Int) : Expression {
     override fun expressionNode() {
 
