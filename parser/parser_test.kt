@@ -179,16 +179,17 @@ fun testParsingPrefixExpressions() {
 }
 
 fun testParsingInfixExpressions() {
-    class Test(val input:String, val leftValue: Int, val operator: String, val rightValue: Int)
+    class Test(val input:String, val leftValue: Any, val operator: String, val rightValue: Any)
     val infixTests = arrayOf(
-            Test("5 + 5;", 5, "+", 5),
-            Test("5 - 5;", 5, "-", 5),
-            Test("5 * 5;", 5, "*", 5),
-            Test("5 / 5;", 5, "/", 5),
-            Test("5 > 5;", 5, ">", 5),
-            Test("5 < 5;", 5, "<", 5),
-            Test("5 == 5;", 5, "==", 5),
-            Test("5 != 5;", 5, "!=", 5)
+            Test("5 + 5", 5, "+", 5),
+            Test("5 - 5", 5, "-", 5),
+            Test("5 * 5", 5, "*", 5),
+            Test("5 / 5", 5, "/", 5),
+            Test("5 >> 5", 5, ">>", 5),
+            Test("5 << 5", 5, "<<", 5),
+            Test("5 == 5", 5, "==", 5),
+            Test("5 != 5", 5, "!=", 5),
+            Test("true != false", true, "!=", false)
     )
     for (test in infixTests) {
         val l = Lexer(test.input)
@@ -202,21 +203,44 @@ fun testParsingInfixExpressions() {
         val stmt = program.statements[0]
         if (stmt is ExpressionStatement) {
             val exp = stmt.expression
-            if (exp is InfixExpression) {
-                if (!testIntegerLiteral(exp.left, test.leftValue)){
-                    return
-                }
-                if (exp.operator != test.operator) {
-                    println("exp.operator is not '${test.operator}'. got=${exp.operator}")
-                }
-                if (!testIntegerLiteral(exp.right, test.rightValue)) {
-                    return
-                }
-            } else {
-                println("exp is not InfixExpression. got=$exp")
-            }
+            testInfixExpression(exp, test.leftValue, test.operator, test.rightValue)
         } else {
             println("program.statements[0] is not ExpressionStatement. got=$stmt")
+        }
+    }
+}
+
+fun testOperatorPrecedenceParsing() {
+    class Test(val input: String, val expected: String)
+    val tests = arrayOf(
+            Test("-a * b", "((-a) * b)"),
+            Test("!-a", "(!(-a))"),
+            Test("a + b + c", "((a + b) + c)"),
+            Test("a + b - c", "((a + b) - c)"),
+            Test("a * b * c", "((a * b) * c)"),
+            Test("a * b / c", "((a * b) / c)"),
+            Test("a + b / c", "(a + (b / c))"),
+            Test("a + b * c + d / e - f", "(((a + (b * c)) + (d / e)) - f)"),
+            Test("3 + 4\n -5 * 5", "(3 + 4)((-5) * 5)"),
+            Test("5 >> 4 == 3 << 4", "((5 >> 4) == (3 << 4))"),
+            Test("5 << 4 != 3 >> 4", "((5 << 4) != (3 >> 4))"),
+            Test("3 + 4 * 5 == 3 * 1 + 4 * 5", "((3 + (4 * 5)) == ((3 * 1) + (4 * 5)))"),
+            Test("1+(2+3)+4", "((1 + (2 + 3)) + 4)"),
+            Test("(5+5)*2", "((5 + 5) * 2)"),
+            Test("2/(5+5)", "(2 / (5 + 5))"),
+            Test("-(5+5)", "(-(5 + 5))"),
+            Test("!(true == true)", "(!(true == true))")
+    )
+
+    for (test in tests) {
+        val l = Lexer(test.input)
+        val p = Parser(l)
+        val program = p.parseProgram()
+        checkParseErrors(p)
+
+        val actual = program.string()
+        if (actual != test.expected) {
+            println("expected=${test.expected}, got=$actual")
         }
     }
 }
@@ -233,6 +257,72 @@ fun testIntegerLiteral(il: Expression, value: Int): Boolean {
         }
     } else {
         println("il not IntegerLiteral. got=$il")
+        return false
+    }
+    return true
+}
+
+fun testIdentifier(exp: Expression, value: String): Boolean {
+    if (exp !is Identifier) {
+        println("exp not Identifier. got=$exp")
+        return false
+    }
+
+    if (exp.value != value) {
+        println("exp.value not $value. got=${exp.value}")
+        return false
+    }
+
+    if (exp.tokenLiteral() != value) {
+        println("ident.tokenLiteral not $value. got=${exp.tokenLiteral()}")
+        return false
+    }
+
+    return true
+}
+
+fun testLiteralExpression(exp: Expression, expected: Any): Boolean {
+    when (expected) {
+        is Int -> return testIntegerLiteral(exp, expected)
+        is String -> return testIdentifier(exp, expected)
+        is Boolean -> return testBoolean(exp, expected)
+    }
+    println("type of exp not handled. got=$exp")
+    return false
+}
+
+fun testBoolean(exp: Expression, value: Boolean): Boolean {
+    if (exp !is BooleanExpression) {
+        println("exp not Identifier. got=$exp")
+        return false
+    }
+
+    if (exp.value != value) {
+        println("exp.value not $value. got=${exp.value}")
+        return false
+    }
+
+    if (exp.tokenLiteral() != value.toString()) {
+        println("ident.tokenLiteral not $value. got=${exp.tokenLiteral()}")
+        return false
+    }
+
+    return true
+}
+
+fun testInfixExpression(exp: Expression, left: Any, operator: String, right: Any): Boolean {
+    if(exp !is InfixExpression) {
+        println("exp is not InfixExpression. got=$exp")
+        return false
+    }
+    if (!testLiteralExpression(exp.left, left)) {
+        return false
+    }
+    if (exp.operator != operator) {
+        println("exp.operator is not '$operator'. got=${exp.operator}")
+        return false
+    }
+    if (!testLiteralExpression(exp.right, right)) {
         return false
     }
     return true

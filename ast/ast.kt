@@ -8,11 +8,9 @@ interface Node {
 }
 
 interface Statement : Node {
-    fun statementNode()
 }
 
 interface Expression : Node {
-    fun expressionNode()
 }
 
 class Program(var statements : MutableList<Statement>) : Node {
@@ -39,9 +37,6 @@ class Program(var statements : MutableList<Statement>) : Node {
 
 class ReturnStatement(var token: Token, var returnValue: Expression): Statement {
 
-    override fun statementNode() {
-    }
-
     override fun tokenLiteral(): String {
         return this.token.literal
     }
@@ -59,10 +54,6 @@ class ReturnStatement(var token: Token, var returnValue: Expression): Statement 
 }
 
 class VarStatement(var token: Token, var name: Identifier, var value: Expression): Statement {
-
-    override fun statementNode() {
-
-    }
 
     override fun tokenLiteral () : String {
         return this.token.literal
@@ -82,9 +73,6 @@ class VarStatement(var token: Token, var name: Identifier, var value: Expression
 }
 
 class ExpressionStatement(var token: Token, var expression: Expression) :Statement {
-    override fun statementNode() {
-
-    }
 
     override fun tokenLiteral() : String {
         return this.token.literal
@@ -96,9 +84,6 @@ class ExpressionStatement(var token: Token, var expression: Expression) :Stateme
 }
 
 class InfixExpression(var token: Token, var left: Expression, var operator: String, var right: Expression): Expression {
-    override fun expressionNode() {
-
-    }
 
     override fun tokenLiteral(): String {
         return token.literal
@@ -109,10 +94,17 @@ class InfixExpression(var token: Token, var left: Expression, var operator: Stri
     }
 }
 
-class IntegerLiteral(var token: Token, var value: Int) : Expression {
-    override fun expressionNode() {
-
+class BooleanExpression(var token: Token, var value: Boolean): Expression {
+    override fun tokenLiteral(): String {
+        return this.token.literal
     }
+
+    override fun string(): String {
+        return this.token.literal
+    }
+}
+
+class IntegerLiteral(var token: Token, var value: Int) : Expression {
 
     override fun tokenLiteral(): String {
         return this.token.literal
@@ -124,9 +116,6 @@ class IntegerLiteral(var token: Token, var value: Int) : Expression {
 }
 
 class PrefixExpression(val token: Token, val operator: String, val right: Expression): Expression {
-    override fun expressionNode() {
-
-    }
 
     override fun tokenLiteral(): String {
         return this.token.literal
@@ -144,10 +133,6 @@ class PrefixExpression(val token: Token, val operator: String, val right: Expres
 }
 
 class Identifier(var token: Token, var value: String) : Expression {
-
-    override fun expressionNode() {
-
-    }
 
     override fun tokenLiteral () : String {
         return this.token.literal
