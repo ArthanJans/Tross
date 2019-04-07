@@ -35,6 +35,20 @@ class Program(var statements : MutableList<Statement>) : Node {
 
 }
 
+class BlockStatement(val token: Token, val statements: MutableList<Statement>): Statement {
+    override fun tokenLiteral(): String {
+        return this.token.literal
+    }
+
+    override fun string(): String {
+        var out = ""
+        for (s in statements) {
+            out += s.string()
+        }
+        return out
+    }
+}
+
 class ReturnStatement(var token: Token, var returnValue: Expression): Statement {
 
     override fun tokenLiteral(): String {

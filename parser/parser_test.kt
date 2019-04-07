@@ -36,6 +36,25 @@ fun testLetStatements() {
     }
 }
 
+fun testBlockStatement() {
+    val input = ">> x <<"
+
+    val l = Lexer(input)
+    val p = Parser(l)
+    val program = p.parseProgram()
+    checkParseErrors(p)
+
+    if (program.statements.size != 1) {
+        println("program.body does not contain 1 statement. got=${program.statements.size}")
+    }
+    val stmt = program.statements[0]
+    if (stmt !is BlockStatement) {
+        println("stmt is not BlockStatement. got=$stmt")
+    } else {
+
+    }
+}
+
 fun testReturnStatement() {
     val input = """
     ret 5
