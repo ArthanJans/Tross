@@ -2,7 +2,7 @@ package tross.parser
 
 import tross.ast.*
 import tross.lexer.*
-
+import javax.swing.plaf.nimbus.State
 
 
 class Parser(var l: Lexer) {
@@ -83,6 +83,7 @@ class Parser(var l: Lexer) {
         return when(this.curToken.type) {
             TokenType.VAR -> this.parseVarStatement()
             TokenType.RET -> this.parseRetStatement()
+            TokenType.LARROW -> this.parseBlockStatement()
             else -> this.parseExpressionStatement()
         }
     }
@@ -100,6 +101,20 @@ class Parser(var l: Lexer) {
             return null
         }
         return exp
+    }
+
+    fun parseBlockStatement(): BlockStatement? {
+        val token = this.curToken
+        val statements = mutableListOf<Statement>()
+        this.nextToken()
+        while (!this.curTokenIs(TokenType.RARROW) && !this.curTokenIs(TokenType.EOF)) {
+            val stmt = this.parseStatement()
+            if (stmt != null) {
+                statements.add(stmt)
+            }
+            this.nextToken()
+        }
+        return BlockStatement(token, statements)
     }
 
     fun parseRetStatement(): ReturnStatement? {

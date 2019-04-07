@@ -7,19 +7,17 @@ interface Node {
     fun string() : String
 }
 
-interface Statement : Node {
-}
+interface Statement : Node
 
-interface Expression : Node {
-}
+interface Expression : Node
 
 class Program(var statements : MutableList<Statement>) : Node {
 
     override fun tokenLiteral(): String {
-        if (this.statements.size > 0) {
-            return this.statements[0].tokenLiteral()
+        return if (this.statements.size > 0) {
+            this.statements[0].tokenLiteral()
         } else {
-            return ""
+            ""
         }
     }
 

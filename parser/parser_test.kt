@@ -37,7 +37,15 @@ fun testLetStatements() {
 }
 
 fun testBlockStatement() {
-    val input = ">> x <<"
+    val expected = arrayOf(5,4,3,2,1)
+    val input = """
+        >
+            5
+            4
+            3
+            2
+            1
+        <"""
 
     val l = Lexer(input)
     val p = Parser(l)
@@ -51,7 +59,27 @@ fun testBlockStatement() {
     if (stmt !is BlockStatement) {
         println("stmt is not BlockStatement. got=$stmt")
     } else {
-
+        if (stmt.statements.size != 5) {
+            println("stmt.statements.size not 5. got=${stmt.statements.size}")
+        } else {
+            for ((i, s) in stmt.statements.withIndex()) {
+                if (s !is ExpressionStatement) {
+                    println("s is not ExpressionStatement. got=$s")
+                } else {
+                    val exp = s.expression
+                    if (exp !is IntegerLiteral) {
+                        println("exp is not IntegerLiteral.  got=$exp")
+                    } else {
+                        if (exp.value != expected[i]) {
+                            println("exp.value is not ${expected[i]}. got=${exp.value}")
+                        }
+                        if (exp.tokenLiteral() != expected[i].toString()) {
+                            println("exp.tokenLiteral is not ${expected[i]}. got=${exp.tokenLiteral()}")
+                        }
+                    }
+                }
+            }
+        }
     }
 }
 
