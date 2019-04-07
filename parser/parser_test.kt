@@ -68,7 +68,7 @@ fun testBlockStatement() {
                 } else {
                     val exp = s.expression
                     if (exp !is IntegerLiteral) {
-                        println("exp is not IntegerLiteral.  got=$exp")
+                        println("exp is not IntegerLiteral. got=$exp")
                     } else {
                         if (exp.value != expected[i]) {
                             println("exp.value is not ${expected[i]}. got=${exp.value}")

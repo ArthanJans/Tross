@@ -84,6 +84,20 @@ class VarStatement(var token: Token, var name: Identifier, var value: Expression
     }
 }
 
+class IfStatement(var token: Token, var condition: Expression, var consequence: BlockStatement, var alternative: BlockStatement?): Statement {
+    override fun tokenLiteral(): String {
+        return this.token.literal
+    }
+
+    override fun string(): String {
+        var out = "if ${condition.string()} ${consequence.string()}"
+        if (alternative != null) {
+            out += "else ${consequence.string()}"
+        }
+        return out
+    }
+}
+
 class ExpressionStatement(var token: Token, var expression: Expression) :Statement {
 
     override fun tokenLiteral() : String {
